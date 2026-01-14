@@ -2,7 +2,7 @@
 # https://github.com/llvm-mirror/llvm/blob/master/utils/docker/debian8/Dockerfile
 
 FROM launcher.gcr.io/google/debian9:latest as builder
-LABEL maintainer "Solana Maintainers"
+LABEL maintainer "Trezoa Maintainers"
 
 # Import public key required for verifying signature of cmake download.
 # Note, this often fails, do it first

@@ -15,7 +15,7 @@ function build_newlib() {
     CC="${OUT_DIR}/rust/build/${HOST_TRIPLE}/llvm/bin/clang" \
       AR="${OUT_DIR}/rust/build/${HOST_TRIPLE}/llvm/bin/llvm-ar" \
       RANLIB="${OUT_DIR}/rust/build/${HOST_TRIPLE}/llvm/bin/llvm-ranlib" \
-      ../newlib/newlib/configure --target=sbf-solana-solana --host=sbf-solana --build="${HOST_TRIPLE}" --prefix="${OUT_DIR}/newlib_$1"
+      ../newlib/newlib/configure --target=sbf-trezoa-trezoa --host=sbf-trezoa --build="${HOST_TRIPLE}" --prefix="${OUT_DIR}/newlib_$1"
     make install
     popd
 }
@@ -28,8 +28,8 @@ function copy_newlib() {
 
     mkdir -p deploy/llvm/lib/sbpf"${folder_name}"
     mkdir -p deploy/llvm/sbpf"${folder_name}"
-    cp -R newlib_"$1"/sbf-solana/lib/lib{c,m}.a deploy/llvm/lib/sbpf"${folder_name}"/
-    cp -R newlib_"$1"/sbf-solana/include deploy/llvm/sbpf"${folder_name}"/    
+    cp -R newlib_"$1"/sbf-trezoa/lib/lib{c,m}.a deploy/llvm/lib/sbpf"${folder_name}"/
+    cp -R newlib_"$1"/sbf-trezoa/include deploy/llvm/sbpf"${folder_name}"/    
 }
 
 unameOut="$(uname -s)"
@@ -65,11 +65,11 @@ rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}"
 
-git clone --single-branch --branch solana-tools-v1.52 --recurse-submodules --shallow-submodules https://github.com/anza-xyz/rust.git
-echo "$( cd rust && git rev-parse HEAD )  https://github.com/anza-xyz/rust.git" >> version.md
+git clone --single-branch --branch trezoa-tools-v1.52 --recurse-submodules --shallow-submodules https://github.com/trezoa-xyz/rust.git
+echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
 
-git clone --single-branch --branch solana-tools-v1.52 https://github.com/anza-xyz/cargo.git
-echo "$( cd cargo && git rev-parse HEAD )  https://github.com/anza-xyz/cargo.git" >> version.md
+git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/cargo.git
+echo "$( cd cargo && git rev-parse HEAD )  https://github.com/trezoa-xyz/cargo.git" >> version.md
 
 pushd rust
 if [[ "${HOST_TRIPLE}" == "x86_64-pc-windows-msvc" ]] ; then
@@ -93,8 +93,8 @@ fi
 popd
 
 if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
-    git clone --single-branch --branch solana-tools-v1.52 https://github.com/anza-xyz/newlib.git
-    echo "$( cd newlib && git rev-parse HEAD )  https://github.com/anza-xyz/newlib.git" >> version.md
+    git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/newlib.git
+    echo "$( cd newlib && git rev-parse HEAD )  https://github.com/trezoa-xyz/newlib.git" >> version.md
 
     build_newlib "v0"
     build_newlib "v1"
@@ -108,10 +108,10 @@ cp -R "rust/build/${HOST_TRIPLE}/stage1/bin" deploy/rust/
 cp -R "cargo/target/release/cargo${EXE_SUFFIX}" deploy/rust/bin/
 mkdir -p deploy/rust/lib/rustlib/
 cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/${HOST_TRIPLE}" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbf-solana-solana" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpf-solana-solana" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpfv1-solana-solana" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpfv2-solana-solana" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbf-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpf-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpfv1-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpfv2-trezoa-trezoa" deploy/rust/lib/rustlib/
 find . -maxdepth 6 -type f -path "./rust/build/${HOST_TRIPLE}/stage1/lib/*" -exec cp {} deploy/rust/lib \;
 mkdir -p deploy/rust/lib/rustlib/src/rust
 cp "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/src/rust/Cargo.lock" deploy/rust/lib/rustlib/src/rust
@@ -147,14 +147,14 @@ EOF
          )
 cp -R "rust/build/${HOST_TRIPLE}/llvm/build/lib/clang" deploy/llvm/lib/
 if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
-    cp -R newlib_v0/sbf-solana/lib/lib{c,m}.a deploy/llvm/lib/
-    cp -R newlib_v0/sbf-solana/include deploy/llvm/
+    cp -R newlib_v0/sbf-trezoa/lib/lib{c,m}.a deploy/llvm/lib/
+    cp -R newlib_v0/sbf-trezoa/include deploy/llvm/
     
     copy_newlib "v0"
     copy_newlib "v1"
     copy_newlib "v2"
 
-    cp -R rust/src/llvm-project/lldb/scripts/solana/* deploy/llvm/bin/
+    cp -R rust/src/llvm-project/lldb/scripts/trezoa/* deploy/llvm/bin/
     cp -R rust/build/${HOST_TRIPLE}/llvm/lib/liblldb.* deploy/llvm/lib/
     if [[ "${HOST_TRIPLE}" == "x86_64-unknown-linux-gnu" || "${HOST_TRIPLE}" == "aarch64-unknown-linux-gnu" ]]; then
         cp -R rust/build/${HOST_TRIPLE}/llvm/local/lib/python* deploy/llvm/lib
@@ -192,7 +192,7 @@ llvm-objcopy
 llvm-objdump
 llvm-readelf
 llvm-readobj
-solana-lldb
+trezoa-lldb
 EOF
          )
 
@@ -206,9 +206,9 @@ mv "${OUT_DIR}/${ARTIFACT}" .
 # Build linux binaries on macOS in docker
 if [[ "$(uname)" == "Darwin" ]] && [[ $# == 1 ]] && [[ "$1" == "--docker" ]] ; then
     docker system prune -a -f
-    docker build -t solanalabs/platform-tools .
-    id=$(docker create solanalabs/platform-tools /build.sh "${OUT_DIR}")
+    docker build -t trezoalabs/platform-tools .
+    id=$(docker create trezoalabs/platform-tools /build.sh "${OUT_DIR}")
     docker cp build.sh "${id}:/"
     docker start -a "${id}"
-    docker cp "${id}:${OUT_DIR}/solana-sbf-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
+    docker cp "${id}:${OUT_DIR}/trezoa-sbf-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
 fi
