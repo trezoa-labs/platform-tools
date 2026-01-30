@@ -26,7 +26,7 @@ ignored.
 This repo depends on the following:
 
 * https://github.com/trezoa-xyz/rust
-* https://github.com/trezoa-xyz/llvm-project
+* https://github.com/trezoa-xyz/llvm-trezoa
 * https://github.com/trezoa-xyz/compiler-builtins
 * https://github.com/trezoa-xyz/newlib
 * https://github.com/trezoa-xyz/cargo

@@ -78,7 +78,7 @@ if [[ "${HOST_TRIPLE}" == "x86_64-pc-windows-msvc" ]] ; then
 fi
 
 if [[ "${HOST_TRIPLE}" == *"apple"* ]]; then
-    ./src/llvm-project/lldb/scripts/macos-setup-codesign.sh
+    ./src/llvm-trezoa/lldb/scripts/macos-setup-codesign.sh
 fi
 
 ./build.sh
@@ -154,7 +154,7 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
     copy_newlib "v1"
     copy_newlib "v2"
 
-    cp -R rust/src/llvm-project/lldb/scripts/trezoa/* deploy/llvm/bin/
+    cp -R rust/src/llvm-trezoa/lldb/scripts/trezoa/* deploy/llvm/bin/
     cp -R rust/build/${HOST_TRIPLE}/llvm/lib/liblldb.* deploy/llvm/lib/
     if [[ "${HOST_TRIPLE}" == "x86_64-unknown-linux-gnu" || "${HOST_TRIPLE}" == "aarch64-unknown-linux-gnu" ]]; then
         cp -R rust/build/${HOST_TRIPLE}/llvm/local/lib/python* deploy/llvm/lib
@@ -206,8 +206,8 @@ mv "${OUT_DIR}/${ARTIFACT}" .
 # Build linux binaries on macOS in docker
 if [[ "$(uname)" == "Darwin" ]] && [[ $# == 1 ]] && [[ "$1" == "--docker" ]] ; then
     docker system prune -a -f
-    docker build -t trezoalabs/platform-tools .
-    id=$(docker create trezoalabs/platform-tools /build.sh "${OUT_DIR}")
+    docker build -t trezoateam/platform-tools .
+    id=$(docker create trezoateam/platform-tools /build.sh "${OUT_DIR}")
     docker cp build.sh "${id}:/"
     docker start -a "${id}"
     docker cp "${id}:${OUT_DIR}/trezoa-sbf-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
