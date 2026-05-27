@@ -65,8 +65,14 @@ rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}"
 
-git clone --single-branch --branch trezoa-1.89.0 --recurse-submodules --shallow-submodules https://github.com/trezoa-xyz/rust.git
+git clone --single-branch --branch trezoa-1.89.0 https://github.com/trezoa-xyz/rust.git
 echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
+# Init only build-required submodules (skip docs, gcc, rustc-perf, enzyme)
+git -C rust submodule update --init --depth=1 \
+    library/backtrace \
+    library/stdarch \
+    src/llvm-trezoa \
+    src/tools/cargo
 
 git clone --single-branch --branch trezoa-1.89.0 https://github.com/trezoa-xyz/cargo.git
 echo "$( cd cargo && git rev-parse HEAD )  https://github.com/trezoa-xyz/cargo.git" >> version.md
