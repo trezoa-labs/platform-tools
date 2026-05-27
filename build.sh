@@ -65,10 +65,10 @@ rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}"
 
-git clone --single-branch --branch trezoa-tools-v1.52 --recurse-submodules --shallow-submodules https://github.com/trezoa-xyz/rust.git
+git clone --single-branch --branch trezoa-1.89.0 --recurse-submodules --shallow-submodules https://github.com/trezoa-xyz/rust.git
 echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
 
-git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/cargo.git
+git clone --single-branch --branch trezoa-1.89.0 https://github.com/trezoa-xyz/cargo.git
 echo "$( cd cargo && git rev-parse HEAD )  https://github.com/trezoa-xyz/cargo.git" >> version.md
 
 pushd rust
@@ -78,7 +78,7 @@ if [[ "${HOST_TRIPLE}" == "x86_64-pc-windows-msvc" ]] ; then
 fi
 
 if [[ "${HOST_TRIPLE}" == *"apple"* ]]; then
-    ./src/llvm-trezoa/lldb/scripts/macos-setup-codesign.sh
+    ./src/llvm-project/lldb/scripts/macos-setup-codesign.sh
 fi
 
 ./build.sh
@@ -93,7 +93,7 @@ fi
 popd
 
 if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
-    git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/newlib.git
+    git clone --single-branch --branch bpf-port https://github.com/trezoa-xyz/newlib.git
     echo "$( cd newlib && git rev-parse HEAD )  https://github.com/trezoa-xyz/newlib.git" >> version.md
 
     build_newlib "v0"
@@ -154,7 +154,7 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
     copy_newlib "v1"
     copy_newlib "v2"
 
-    cp -R rust/src/llvm-trezoa/lldb/scripts/trezoa/* deploy/llvm/bin/
+    cp -R rust/src/llvm-project/lldb/scripts/trezoa/* deploy/llvm/bin/
     cp -R rust/build/${HOST_TRIPLE}/llvm/lib/liblldb.* deploy/llvm/lib/
     if [[ "${HOST_TRIPLE}" == "x86_64-unknown-linux-gnu" || "${HOST_TRIPLE}" == "aarch64-unknown-linux-gnu" ]]; then
         cp -R rust/build/${HOST_TRIPLE}/llvm/local/lib/python* deploy/llvm/lib
@@ -210,5 +210,5 @@ if [[ "$(uname)" == "Darwin" ]] && [[ $# == 1 ]] && [[ "$1" == "--docker" ]] ; t
     id=$(docker create trezoateam/platform-tools /build.sh "${OUT_DIR}")
     docker cp build.sh "${id}:/"
     docker start -a "${id}"
-    docker cp "${id}:${OUT_DIR}/trezoa-sbf-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
+    docker cp "${id}:${OUT_DIR}/platform-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
 fi

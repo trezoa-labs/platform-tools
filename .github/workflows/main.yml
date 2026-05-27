@@ -7,7 +7,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Shell Check
       run: ./shellcheck.sh
       shell: bash
@@ -65,7 +65,7 @@ jobs:
           tar: windows
           out_dir: /c/out
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Install coreutils and swig
       run: |
         brew update && brew install coreutils swig ninja
@@ -103,6 +103,8 @@ jobs:
     name: Upload Release Assets
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     steps:
     - name: Download Linux x86 tarball
@@ -125,63 +127,17 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: platform-tools-windows-x86_64.tar.bz2
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Generate SHA256SUMS
+      run: sha256sum platform-tools-*.tar.bz2 > SHA256SUMS
+      shell: bash
+    - name: Create Release and Upload Assets
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-    - name: Release Linux x86 tarball
-      id: upload-release-linux-x86_64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: platform-tools-linux-x86_64.tar.bz2
-        asset_name: platform-tools-linux-x86_64.tar.bz2
-        asset_content_type: application/zip
-    - name: Release Linux ARM tarball
-      id: upload-release-linux-aarch64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: platform-tools-linux-aarch64.tar.bz2
-        asset_name: platform-tools-linux-aarch64.tar.bz2
-        asset_content_type: application/zip
-    - name: Release macOS ARM tarball
-      id: upload-release-macos-aarch64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: platform-tools-osx-aarch64.tar.bz2
-        asset_name: platform-tools-osx-aarch64.tar.bz2
-        asset_content_type: application/zip
-    - name: Release macOS x86 tarball
-      id: upload-release-macos-x86_64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: platform-tools-osx-x86_64.tar.bz2
-        asset_name: platform-tools-osx-x86_64.tar.bz2
-        asset_content_type: application/zip
-    - name: Release Windows tarball
-      id: upload-release-windows
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: platform-tools-windows-x86_64.tar.bz2
-        asset_name: platform-tools-windows-x86_64.tar.bz2
-        asset_content_type: application/zip
+        name: Trezoa platform-tools ${{ github.ref_name }}
+        files: |
+          platform-tools-linux-x86_64.tar.bz2
+          platform-tools-linux-aarch64.tar.bz2
+          platform-tools-osx-aarch64.tar.bz2
+          platform-tools-osx-x86_64.tar.bz2
+          platform-tools-windows-x86_64.tar.bz2
+          SHA256SUMS
