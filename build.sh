@@ -68,12 +68,20 @@ pushd "${OUT_DIR}"
 git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/rust.git
 echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
 # Set up submodules manually: clone llvm by branch name to avoid GitHub rejecting
-# direct SHA fetches (which --shallow-submodules triggers via upload-pack)
+# direct SHA fetches (--depth 1 + SHA makes GitHub upload-pack return "not our ref")
 pushd rust
 git submodule init
 git clone --single-branch --branch trezoa-rustc/20.1-2025-02-13 --depth 1 \
     https://github.com/trezoa-labs/llvm-project.git src/llvm-trezoa
-git submodule update --init --depth 1 --jobs 8
+# Use pre-cloned local objects for llvm: --no-fetch avoids GitHub rejecting the SHA fetch
+git submodule update --init --no-fetch -- src/llvm-trezoa
+# Shallow-fetch all other submodules (none have the upload-pack SHA rejection issue)
+git submodule update --init --depth 1 --jobs 8 -- \
+    library/backtrace library/stdarch \
+    src/doc/edition-guide src/doc/nomicon src/doc/reference \
+    src/doc/embedded-book src/doc/rust-by-example src/doc/book \
+    src/tools/enzyme src/tools/cargo src/tools/rustc-perf \
+    src/gcc
 popd
 
 git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/cargo.git
