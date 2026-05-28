@@ -65,8 +65,16 @@ rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}"
 
-git clone --single-branch --branch trezoa-tools-v1.52 --recurse-submodules --shallow-submodules https://github.com/trezoa-xyz/rust.git
+git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/rust.git
 echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
+# Set up submodules manually: clone llvm by branch name to avoid GitHub rejecting
+# direct SHA fetches (which --shallow-submodules triggers via upload-pack)
+pushd rust
+git submodule init
+git clone --single-branch --branch trezoa-rustc/20.1-2025-02-13 --depth 1 \
+    https://github.com/trezoa-labs/llvm-project.git src/llvm-trezoa
+git submodule update --init --depth 1 --jobs 8
+popd
 
 git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/cargo.git
 echo "$( cd cargo && git rev-parse HEAD )  https://github.com/trezoa-xyz/cargo.git" >> version.md
