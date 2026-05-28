@@ -15,7 +15,7 @@ function build_newlib() {
     CC="${OUT_DIR}/rust/build/${HOST_TRIPLE}/llvm/bin/clang" \
       AR="${OUT_DIR}/rust/build/${HOST_TRIPLE}/llvm/bin/llvm-ar" \
       RANLIB="${OUT_DIR}/rust/build/${HOST_TRIPLE}/llvm/bin/llvm-ranlib" \
-      ../newlib/newlib/configure --target=sbf-trezoa-trezoa --host=sbf-trezoa --build="${HOST_TRIPLE}" --prefix="${OUT_DIR}/newlib_$1"
+      ../newlib/newlib/configure --target=tbf-trezoa-trezoa --host=tbf-trezoa --build="${HOST_TRIPLE}" --prefix="${OUT_DIR}/newlib_$1"
     make install
     popd
 }
@@ -26,10 +26,10 @@ function copy_newlib() {
         folder_name="$1"
     fi
 
-    mkdir -p deploy/llvm/lib/sbpf"${folder_name}"
-    mkdir -p deploy/llvm/sbpf"${folder_name}"
-    cp -R newlib_"$1"/sbf-trezoa/lib/lib{c,m}.a deploy/llvm/lib/sbpf"${folder_name}"/
-    cp -R newlib_"$1"/sbf-trezoa/include deploy/llvm/sbpf"${folder_name}"/    
+    mkdir -p deploy/llvm/lib/tbpf"${folder_name}"
+    mkdir -p deploy/llvm/tbpf"${folder_name}"
+    cp -R newlib_"$1"/tbf-trezoa/lib/lib{c,m}.a deploy/llvm/lib/tbpf"${folder_name}"/
+    cp -R newlib_"$1"/tbf-trezoa/include deploy/llvm/tbpf"${folder_name}"/    
 }
 
 unameOut="$(uname -s)"
@@ -65,16 +65,10 @@ rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}"
 
-git clone --single-branch --branch trezoa-1.89.0 https://github.com/trezoa-xyz/rust.git
+git clone --single-branch --branch trezoa-tools-v1.52 --recurse-submodules --shallow-submodules https://github.com/trezoa-xyz/rust.git
 echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
-# Init only build-required submodules (skip docs, gcc, rustc-perf, enzyme)
-git -C rust submodule update --init --depth=1 \
-    library/backtrace \
-    library/stdarch \
-    src/llvm-trezoa \
-    src/tools/cargo
 
-git clone --single-branch --branch trezoa-1.89.0 https://github.com/trezoa-xyz/cargo.git
+git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/cargo.git
 echo "$( cd cargo && git rev-parse HEAD )  https://github.com/trezoa-xyz/cargo.git" >> version.md
 
 pushd rust
@@ -99,7 +93,7 @@ fi
 popd
 
 if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
-    git clone --single-branch --branch bpf-port https://github.com/trezoa-xyz/newlib.git
+    git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/newlib.git
     echo "$( cd newlib && git rev-parse HEAD )  https://github.com/trezoa-xyz/newlib.git" >> version.md
 
     build_newlib "v0"
@@ -114,10 +108,10 @@ cp -R "rust/build/${HOST_TRIPLE}/stage1/bin" deploy/rust/
 cp -R "cargo/target/release/cargo${EXE_SUFFIX}" deploy/rust/bin/
 mkdir -p deploy/rust/lib/rustlib/
 cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/${HOST_TRIPLE}" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbf-trezoa-trezoa" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpf-trezoa-trezoa" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpfv1-trezoa-trezoa" deploy/rust/lib/rustlib/
-cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/sbpfv2-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/tbf-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/tbpf-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/tbpfv1-trezoa-trezoa" deploy/rust/lib/rustlib/
+cp -R "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/tbpfv2-trezoa-trezoa" deploy/rust/lib/rustlib/
 find . -maxdepth 6 -type f -path "./rust/build/${HOST_TRIPLE}/stage1/lib/*" -exec cp {} deploy/rust/lib \;
 mkdir -p deploy/rust/lib/rustlib/src/rust
 cp "rust/build/${HOST_TRIPLE}/stage1/lib/rustlib/src/rust/Cargo.lock" deploy/rust/lib/rustlib/src/rust
@@ -153,8 +147,8 @@ EOF
          )
 cp -R "rust/build/${HOST_TRIPLE}/llvm/build/lib/clang" deploy/llvm/lib/
 if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
-    cp -R newlib_v0/sbf-trezoa/lib/lib{c,m}.a deploy/llvm/lib/
-    cp -R newlib_v0/sbf-trezoa/include deploy/llvm/
+    cp -R newlib_v0/tbf-trezoa/lib/lib{c,m}.a deploy/llvm/lib/
+    cp -R newlib_v0/tbf-trezoa/include deploy/llvm/
     
     copy_newlib "v0"
     copy_newlib "v1"
@@ -216,5 +210,6 @@ if [[ "$(uname)" == "Darwin" ]] && [[ $# == 1 ]] && [[ "$1" == "--docker" ]] ; t
     id=$(docker create trezoateam/platform-tools /build.sh "${OUT_DIR}")
     docker cp build.sh "${id}:/"
     docker start -a "${id}"
-    docker cp "${id}:${OUT_DIR}/platform-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
+    docker cp "${id}:${OUT_DIR}/trezoa-tbf-tools-linux-x86_64.tar.bz2" "${OUT_DIR}"
 fi
+
