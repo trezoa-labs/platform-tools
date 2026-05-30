@@ -113,7 +113,7 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
     # The Rust/LLVM toolchain targets tbf-trezoa-trezoa, but upstream config.sub
     # only recognizes the legacy sbf CPU, so configure rejects tbf-* triples.
     # Mirror the existing sbf entries (perl is portable across Linux/macOS runners).
-    for cs in $(find newlib -name config.sub); do
+    find newlib -name config.sub -print0 | while IFS= read -r -d '' cs; do
         if ! grep -q "tbf | tbfel | tbfeb" "$cs"; then
             perl -pi -e 's/\| sbf \| sbfel \| sbfeb \|/| sbf | sbfel | sbfeb | tbf | tbfel | tbfeb |/' "$cs"
         fi
