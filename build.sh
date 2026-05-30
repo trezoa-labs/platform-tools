@@ -109,6 +109,16 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
     git clone --single-branch --branch trezoa-tools-v1.52 https://github.com/trezoa-xyz/newlib.git
     echo "$( cd newlib && git rev-parse HEAD )  https://github.com/trezoa-xyz/newlib.git" >> version.md
 
+    # Teach newlib's config.sub about Trezoa's intentional tbf target CPU.
+    # The Rust/LLVM toolchain targets tbf-trezoa-trezoa, but upstream config.sub
+    # only recognizes the legacy sbf CPU, so configure rejects tbf-* triples.
+    # Mirror the existing sbf entries (perl is portable across Linux/macOS runners).
+    for cs in $(find newlib -name config.sub); do
+        if ! grep -q "tbf | tbfel | tbfeb" "$cs"; then
+            perl -pi -e 's/\| sbf \| sbfel \| sbfeb \|/| sbf | sbfel | sbfeb | tbf | tbfel | tbfeb |/' "$cs"
+        fi
+    done
+
     build_newlib "v0"
     build_newlib "v1"
     build_newlib "v2"
