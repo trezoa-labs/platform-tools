@@ -127,7 +127,7 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
     # and --target=tbf-trezoa-trezoa. Perl is portable across Linux/macOS runners.
     find newlib -name configure.host -print0 | while IFS= read -r -d '' ch; do
         if ! grep -q "tbf\*)" "$ch"; then
-            perl -0pi -e 's{^(  sbf\*\)\n\tmachine_dir=sbf\n\tnewlib_cflags="\$\{newlib_cflags\}[^\n]*--target=sbf-trezoa-trezoa"\n\t;;\n)}{$1  tbf*)\n\tmachine_dir=tbf\n\tnewlib_cflags="\$\{newlib_cflags\} --target=tbf-trezoa-trezoa"\n\t;;\n}m' "$ch"
+            perl -0pi -e 's{^(  sbf\*\)\n\tmachine_dir=sbf\n\tnewlib_cflags="\$\{newlib_cflags\}[^\n]*--target=sbf-trezoa-trezoa"\n\t;;\n)}{$1  tbf*)\n\tmachine_dir=tbf\n\tnewlib_cflags="\$\{newlib_cflags\} -D_LDBL_EQ_DBL=1 -D_COMPILING_NEWLIB --target=tbf-trezoa-trezoa"\n\t;;\n}m' "$ch"
             perl -0pi -e 's{^(  sbf\*-\*-\*\)\n\tmachine_dir=sbf\n\tnewlib_cflags="\$\{newlib_cflags\} --target=sbf-trezoa-trezoa"\n\t;;\n)}{$1  tbf*-*-*)\n\tmachine_dir=tbf\n\tnewlib_cflags="\$\{newlib_cflags\} --target=tbf-trezoa-trezoa"\n\t;;\n}m' "$ch"
             perl -0pi -e 's{^(  sbf\*-\*-\*\)\n\tsyscall_dir=syscalls\n\t;;\n)}{$1  tbf*-*-*)\n\tsyscall_dir=syscalls\n\t;;\n}m' "$ch"
         fi
