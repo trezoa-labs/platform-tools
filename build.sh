@@ -144,6 +144,16 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
         perl -pi -e 's/^void raise\(int\);$/int raise(int);/' "$f"
     done
 
+    # Fix newlib libm/common/acosl.c conflicting forward declaration.
+    # Under _LDBL_EQ_DBL the SOL-era rebrand inserted a bogus "long double
+    # acos(long double);" forward declaration that conflicts with <math.h>'s
+    # "double acos (double);", breaking the libm/common compile (so common/lib.a
+    # is never produced). <math.h> already declares acos, so the line is removed.
+    # The match is anchored and naturally idempotent (no match once removed).
+    find newlib -path '*/libm/common/acosl.c' -print0 | while IFS= read -r -d '' f; do
+        perl -0pi -e 's/^long double acos\(long double\);\n//m' "$f"
+    done
+
     build_newlib "v0"
     build_newlib "v1"
     build_newlib "v2"
