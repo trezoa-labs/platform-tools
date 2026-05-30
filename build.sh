@@ -133,6 +133,16 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
         fi
     done
 
+    # Fix newlib SSP raise() prototype conflict.
+    # chk_fail.c and stack_protector.c carry a stale "void raise(int);" forward
+    # declaration (added by the SOL-era rebrand) that conflicts with <signal.h>'s
+    # "int raise (int);" (both files already include <signal.h>), breaking the SSP
+    # compile. Align the prototype to the header. The match is anchored and naturally
+    # idempotent (no match once it already reads "int raise(int);").
+    find newlib -path '*/libc/ssp/*' \( -name chk_fail.c -o -name stack_protector.c \) -print0 | while IFS= read -r -d '' f; do
+        perl -pi -e 's/^void raise\(int\);$/int raise(int);/' "$f"
+    done
+
     build_newlib "v0"
     build_newlib "v1"
     build_newlib "v2"
