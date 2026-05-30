@@ -65,7 +65,7 @@ rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}"
 
-git clone --single-branch --branch trezoa-tools-v1.52.1 https://github.com/trezoa-xyz/rust.git
+git clone --single-branch --branch trezoa-tools-v1.52.2 https://github.com/trezoa-xyz/rust.git
 echo "$( cd rust && git rev-parse HEAD )  https://github.com/trezoa-xyz/rust.git" >> version.md
 # Set up submodules manually: clone llvm by branch name to avoid GitHub rejecting
 # direct SHA fetches (GitHub upload-pack rejects "git fetch --depth 1 <sha>").
