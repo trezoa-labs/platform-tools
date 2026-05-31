@@ -154,6 +154,18 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
         perl -0pi -e 's/^long double acos\(long double\);\n//m' "$f"
     done
 
+    # Fix newlib libm/common/log2l.c macro-colliding forward declaration.
+    # Under _LDBL_EQ_DBL the SOL-era rebrand inserted "double log2(double);",
+    # but <math.h> defines log2 as a function-like macro
+    # (#define log2(x) (log (x) / _M_LN2)). The preprocessor expands the bogus
+    # prototype into "double (log (double) / _M_LN2);", failing with
+    # "error: expected ')'" and aborting the libm/common compile. <math.h>
+    # already provides log2, so the line is removed (log2l()'s "return log2(x);"
+    # keeps using the macro). Anchored and naturally idempotent.
+    find newlib -path '*/libm/common/log2l.c' -print0 | while IFS= read -r -d '' f; do
+        perl -0pi -e 's/^double log2\(double\);\n//m' "$f"
+    done
+
     build_newlib "v0"
     build_newlib "v1"
     build_newlib "v2"
