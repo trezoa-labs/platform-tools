@@ -166,6 +166,19 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
         perl -0pi -e 's/^double log2\(double\);\n//m' "$f"
     done
 
+    # Fix newlib libc/time/strptime.c stale feature-macro guard.
+    # The SOL-era rebrand renamed the feature macro to _trezoa_SOURCE in
+    # sys/features.h (which then defines _REENT_ONLY, disabling the public
+    # "errno" macro in sys/errno.h), but strptime.c still guards its body with
+    # the old "#ifndef _SOLANA_SOURCE". Since the build defines _trezoa_SOURCE
+    # (not _SOLANA_SOURCE), the body is compiled when it should be excluded for
+    # Trezoa, and its bare "errno" uses fail ("use of undeclared identifier
+    # 'errno'"). Rename the stale guard to _trezoa_SOURCE so the file is
+    # excluded as intended. Word-boundary anchored and naturally idempotent.
+    find newlib -path '*/libc/time/strptime.c' -print0 | while IFS= read -r -d '' f; do
+        perl -pi -e 's/\b_SOLANA_SOURCE\b/_trezoa_SOURCE/g' "$f"
+    done
+
     build_newlib "v0"
     build_newlib "v1"
     build_newlib "v2"
