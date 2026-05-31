@@ -144,14 +144,16 @@ if [[ "${HOST_TRIPLE}" != "x86_64-pc-windows-msvc" ]] ; then
         perl -pi -e 's/^void raise\(int\);$/int raise(int);/' "$f"
     done
 
-    # Fix newlib libm/common/acosl.c conflicting forward declaration.
+    # Fix newlib libm/common/acosl.c forward declaration of acos().
     # Under _LDBL_EQ_DBL the SOL-era rebrand inserted a bogus "long double
-    # acos(long double);" forward declaration that conflicts with <math.h>'s
-    # "double acos (double);", breaking the libm/common compile (so common/lib.a
-    # is never produced). <math.h> already declares acos, so the line is removed.
-    # The match is anchored and naturally idempotent (no match once removed).
+    # acos(long double);" forward declaration with the wrong type. Simply
+    # deleting it is not enough: -D_trezoa_SOURCE enables _REENT_ONLY, under
+    # which <math.h> no longer declares "double acos (double);", so the bare
+    # "return acos(x);" hits -Wimplicit-function-declaration (ISO C99 error).
+    # Replace the bogus declaration with the correct one matching <math.h>:102
+    # ("double acos (double);"). The match is anchored and idempotent.
     find newlib -path '*/libm/common/acosl.c' -print0 | while IFS= read -r -d '' f; do
-        perl -0pi -e 's/^long double acos\(long double\);\n//m' "$f"
+        perl -0pi -e 's/^long double acos\(long double\);$/double acos(double);/m' "$f"
     done
 
     # Fix newlib libm/common/log2l.c macro-colliding forward declaration.
